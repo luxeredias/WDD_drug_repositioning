@@ -63,7 +63,6 @@ all_drug_gene <- df_drug_genes %>%
   select(`Source Display Name`,`Target Display Name`) %>%
   rename(Source=`Source Display Name`,Target=`Target Display Name`)
 
-################################################################################
 
 #drugs that affect exclusive genes coex
 exclusive_genes_drugs <- all_drug_gene %>%
@@ -130,11 +129,22 @@ final_gene_disease_references <- df_genes %>%
   select(`Source Display Name`,`Target Display Name`,Confidence,`Document IDs`) %>%
   rename(Source=`Source Display Name`,Target=`Target Display Name`)
 
+#####GET ALL WDD SEARCHES WITH GENES AND MAKE DRUG_GENE DATAFRAME###############
+genes_files <- paste0("/home/thomaz/first_neighbor_genes_all/",exclusive_genes_coex,"_50perc_2doc_50y.csv")
+
+#drug-gene relations from raw source
+df_drug_genes <- list.files(path = "~/first_neighbor_genes_all",pattern = ".csv",full.names = T) %>%
+  .[. %in% genes_files] %>%
+  lapply(read_csv) %>% 
+  bind_rows
+
 all_drug_gene <- df_drug_genes %>%
   filter(Confidence >= 50 & Documents >1 | Documents==-1) %>%
   filter(`Source type`=="DRUG" & `Target type`=="GENE") %>%
   select(`Source Display Name`,`Target Display Name`,Confidence,`Document IDs`) %>%
   rename(Source=`Source Display Name`,Target=`Target Display Name`)
+
+################################################################################
 
 final_drug_gene_references <- all_drug_gene %>%
   filter(Source %in% final_drugs & Target %in% final_genes)
