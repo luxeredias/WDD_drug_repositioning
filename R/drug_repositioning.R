@@ -4,11 +4,12 @@ library(readr)
 library(dplyr)
 options(stringsAsFactors = F)
 
+dir <- "~/Área de Trabalho/GitHub_projects/PND_drug_repo/"
+setwd(dir)
+
 #import dis_FNG_FNDrugs file
-workingdir <- "~/PsychiatricDisorders/worm_inflammatory_infectious/psychiatric/evolution_files/"
-year <- 2018
-path <- paste0("till",year)
-df <- list.files(path = paste0(workingdir,path),pattern = ".csv",full.names = T) %>%
+workingdir <- "data/evolution_files/"
+df <- list.files(path = paste0(workingdir),pattern = ".csv",full.names = T) %>%
   lapply(read_csv) %>% 
   bind_rows
 df <- as.data.frame(df)
@@ -23,10 +24,10 @@ gene_disease_edges <- df_genes %>%
   rename(Source=`Source Display Name`,Target=`Target Display Name`)
 
 #all drug-gene interactions
-all_drug_gene <- read.csv("~/Área de Trabalho/drugs_all_50percent_2documents.csv")
+all_drug_gene <- read.csv("data/drugs_all_50percent_2documents.csv")
 
 #gandal info
-gandal <- read.csv("~/Área de Trabalho/gandal_2018a.csv",dec = ",")
+gandal <- read.csv("data/gandal_2018a.csv",dec = ",")
 gandal_genes <- gandal %>%
   filter(Module.name!="CD0") %>%
   pull(external_gene_id)
@@ -52,7 +53,7 @@ exclusive_genes_coex <- exclusive_genes[exclusive_genes %in% gandal_genes]
 genes_files <- paste0("/home/thomaz/first_neighbor_genes_all/",exclusive_genes_coex,"_50perc_2doc_50y.csv")
 
 #drug-gene relations from raw source
-df_drug_genes <- list.files(path = "~/first_neighbor_genes_all",pattern = ".csv",full.names = T) %>%
+df_drug_genes <- list.files(path = "/home/thomaz/first_neighbor_genes_all",pattern = ".csv",full.names = T) %>%
   .[. %in% genes_files] %>%
   lapply(read_csv) %>% 
   bind_rows
@@ -112,6 +113,7 @@ drug_gene_disease_curate <- exclusive_genes_drugs %>%
 drug_gene_disease_curate <- merge(drug_gene_disease_curate,gene_disease_edges,
                                   by.x="Target",by.y="Source") %>%
   select(Source,Target,Target.y)
+
 colnames(drug_gene_disease_curate) <- c("DRUG","GENE","DISEASE")
 
 #save file outside of R to curate mannually
