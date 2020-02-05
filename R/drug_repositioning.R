@@ -18,7 +18,13 @@ df <- df[(df$Confidence > 50 | df$Confidence == -1) & df$Documents > 1,]
 
 #gene-PND and drug-PND networks
 df_drugs <- df[df$`Source type`=="DRUG",]
+wdd_all_drugs <- unique(df_drugs$`Source Display Name`)
+save(wdd_all_drugs,file = "data/wdd_all_drugs.RData")
+
 df_genes <- df[df$`Source type`=="GENE",]
+wdd_all_genes <- unique(df_genes$`Source Display Name`)
+save(wdd_all_genes,file = "data/wdd_all_genes.RData")
+
 gene_disease_edges <- df_genes %>%
   select(`Source Display Name`,`Target Display Name`) %>%
   rename(Source=`Source Display Name`,Target=`Target Display Name`)
@@ -47,7 +53,17 @@ degree <- degree(graph)
 nodes$degree <- degree(graph)
 
 exclusive_genes <- nodes$Id[nodes$Class=="GENE" & nodes$degree==1]
+save(exclusive_genes,file = "data/exclusive_genes.RData")
 exclusive_genes_coex <- exclusive_genes[exclusive_genes %in% gandal_genes]
+save(exclusive_genes_coex,file = "data/exclusive_genes_coex.RData")
+
+exclusive_genes_coex_edges <- df_genes %>%
+  filter(`Source Display Name` %in% exclusive_genes_coex) %>%
+  select(`Source Display Name`,`Target Display Name`,Confidence,`Document IDs`) %>%
+  rename(Source=`Source Display Name`,Target=`Target Display Name`)
+
+save(exclusive_genes_coex_edges,file="data/exclusive_genes_coex_edges.RData")
+write.csv(exclusive_genes_coex_edges,file = "data/Table_S1_exclusive_coexpressed_genes.csv",row.names = F)
 
 #####GET ALL WDD SEARCHES WITH GENES AND MAKE DRUG_GENE DATAFRAME###############
 genes_files <- paste0("/home/thomaz/first_neighbor_genes_all/",exclusive_genes_coex,"_50perc_2doc_50y.csv")
@@ -68,8 +84,9 @@ all_drug_gene <- df_drug_genes %>%
 #drugs that affect exclusive genes coex
 exclusive_genes_drugs <- all_drug_gene %>%
   filter(Target %in% exclusive_genes_coex)
-  
+
 length(unique(exclusive_genes_drugs$Source))
+save(exclusive_genes_drugs,file="data/exclusive_coex_genes_drugs.RData")  
 
 #remove known PND drugs
 exclusive_genes_drugs <- exclusive_genes_drugs %>%
@@ -101,8 +118,10 @@ drug_nodes$degree <- degree(drug_graph)
 #keep only drugs that affect one gene (among all genes in the original gene-PND network)
 final_drugs <- drug_nodes$Id[drug_nodes$Class=="DRUG" & drug_nodes$degree==1]
 length(unique(final_drugs))
+save(final_drugs,file = "data/final_drugs.RData")
 
 final_genes <- unique(drug_nodes$Id[drug_nodes$Class=="GENE"])
+save(final_genes,file="data/final_genes.RData")
 length(unique(final_genes))
 
 #create object to curate each drug-gene-disease relationship
@@ -162,3 +181,4 @@ final_drug_gene_disease_references <- final_drug_gene_disease_references %>%
   arrange(PND)
 
 write.csv(final_drug_gene_disease_references,file="data/Table_S2_drug_gene_disease_references.csv",quote = T,row.names = F)
+save(final_drug_gene_disease_references,file="data/drug_gene_disease_final.RData")
