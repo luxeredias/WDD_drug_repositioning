@@ -1,4 +1,4 @@
-# PND_drug_repo
+# WDD_drug_repositioning
 This script performs the following tasks necessary for the drug repositioning steps using Watson for Drug Discovery data performed in the manuscript "Drug repositioning for psychiatric and neurological disorders through a network medicine approach":
 
 01 - create a network of genes associated to a list of diseases using WDD files (here: PNDs - Psychiatric and Neurological Disorders) --> gene-PND network;
